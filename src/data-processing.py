@@ -10,7 +10,8 @@ data_path = "./data/2024/"
 #data_path = "./warmup_2023/data/"
 listdir(data_path)
 
-SAMPLESUBMIT = "MSampleSubmissionStage2.csv"
+SAMPLESUBMIT = "sample_submission.csv"
+#SAMPLESUBMIT = "MSampleSubmissionStage2.csv"
 #SAMPLESUBMIT = "SampleSubmissionWarmup.csv"
 
 files = [f[:-4] for f in listdir(data_path) if isfile(join(data_path, f))]
@@ -30,7 +31,7 @@ def generate_dataset(start, end):
     seasons = range(first_season, last_season)
     results = dfs["MNCAATourneyDetailedResults"]
     results = results[results["Season"] >= first_season].reset_index(drop=True)
-    rankings = dfs["MMasseyOrdinals"]
+    rankings = dfs["MMasseyOrdinals_thruSeason2024_day128"]
     rankings = rankings[rankings["Season"] >= first_season].reset_index(drop=True)
     systems = set(rankings["SystemName"].unique())
     for season in rankings["Season"].unique():
@@ -91,7 +92,7 @@ def generate_dataset(start, end):
 def get_test(systems):
     preds_frame = pd.read_csv(data_path + SAMPLESUBMIT)
     X_test = pd.DataFrame(np.zeros((len(preds_frame), 2 + 2 * len(systems))))
-    rankings = dfs["MMasseyOrdinals"]
+    rankings = dfs["MMasseyOrdinals_thruSeason2024_day128"]
     rankings = rankings[rankings["Season"] == 2024].reset_index(drop=True)
     seeds = dfs["MNCAATourneySeeds"][dfs["MNCAATourneySeeds"]["Season"] == 2022]
     for i, row in preds_frame.iterrows():
