@@ -9,6 +9,7 @@ from sklearn.metrics import log_loss
 data_path = "./data/2024/"
 #data_path = "warmup_2023/data/"
 #data_path = "data_2022/march_madness/"
+SAMPLESUBMIT = "sample_submission.csv"
 
 X = pd.read_csv(data_path + "X.csv").drop(["Unnamed: 0"], axis=1)
 Y = pd.read_csv(data_path + "Y.csv")["0"]
@@ -52,8 +53,7 @@ def fit_model(X, Y, params):
 
 def predict(X_test, model, title):
     preds = model.predict_proba(X_test)
-    #preds_frame = pd.read_csv(data_path + "MSampleSubmissionStage2.csv")
-    preds_frame = pd.read_csv(data_path + "SampleSubmissionWarmup.csv")
+    preds_frame = pd.read_csv(data_path + SAMPLESUBMIT)
     for i, row in preds_frame.iterrows():
         pred = preds[i][1]
         preds_frame.at[i, "Pred"] = pred
