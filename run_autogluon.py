@@ -5,8 +5,8 @@ from src.data_transformer import DataTransformer
 from src.prediction_utils import *
 from src.constants import *
 
-data_path = "./data/"
-file_path = ["2024/","MDataFiles_Stage2/"]
+data_path = "./data/2024/"
+file_path = ["march-machine-learning-mania-2024/","MDataFiles_Stage2/"]
 
 print('Loading Files')
 data_loader = DataLoader(data_path, file_path)
