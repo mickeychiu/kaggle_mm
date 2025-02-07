@@ -28,7 +28,8 @@ First install UV using
 
 Next set up a UV virtual environment:
 
-`uv venv .venv`
+`uv init`           # create uv project
+`uv venv .venv`     # create virtual environment
 
 Activate the virtual environment:
 
