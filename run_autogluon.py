@@ -40,7 +40,7 @@ pred_df.to_csv("predictions/predictions.csv")
 print('pred_df  ',type(pred_df))
 print('Printing out predictions')
 
-breakpoint()
+#breakpoint()
 
 first_four = get_first_four(files)
 pretty_print_matchups(pred_df, first_four, include_moneyline=False)
