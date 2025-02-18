@@ -3,17 +3,19 @@ from autogluon.tabular import TabularPredictor
 from src.data_loader import DataLoader
 from src.data_transformer import DataTransformer
 from src.prediction_utils import *
-from src.constants import *
 
-data_path = "./data/2024/"
-file_path = ["march-machine-learning-mania-2024/","MDataFiles_Stage2/"]
+#data_path = "./data/2024/"
+#file_path = ["march-machine-learning-mania-2024/","MDataFiles_Stage2/"]
+data_path = "./data/2025/"
+file_path = ["march-machine-learning-mania-2025/"]
+CurrentYear=2024
 
 print('Loading Files')
 data_loader = DataLoader(data_path, file_path)
 files = data_loader.load_csvs()
 
 print('Processing files to training format')
-transformer = DataTransformer(files, label="label")
+transformer = DataTransformer(files, label="label", currentyear=CurrentYear)
 
 print('Training from data...')
 train = transformer.get_train()
@@ -35,6 +37,12 @@ pred_df = predict_probs_and_moneylines(test_with_names)
 
 pred_df.to_csv("predictions/predictions.csv")
 
+print('pred_df  ',type(pred_df))
 print('Printing out predictions')
+
+breakpoint()
+
+first_four = get_first_four(files)
 pretty_print_matchups(pred_df, first_four, include_moneyline=False)
+round_1_matchups = get_round1(files) # excludes round1 which need results of pigtail games
 pretty_print_matchups(pred_df, round_1_matchups, include_moneyline=False)

@@ -1,21 +1,37 @@
 import numpy as np
 import pandas as pd
+import glob
+import re
 
 verbosity = 0
 
 class DataTransformer:
-    def __init__(self, dataframes, label):
-        #print('DataTransformer')
+    def __init__(self, dataframes, label, currentyear=2025):
+        print('DataTransformer')
+        self.currentyear = currentyear
+        print(self.currentyear)
         self.dfs = dataframes
+        #print(self.dfs)
         self.rankings = self.transform_rankings(self.dfs)
-        self.train = self.rankings[self.rankings["Season"] != 2022]
-        self.test = self.rankings[self.rankings["Season"] == 2022]
+        #self.train = self.rankings[self.rankings["Season"] != 2022]
+        #self.test = self.rankings[self.rankings["Season"] == 2022]
+        self.train = self.rankings[self.rankings["Season"] != currentyear]
+        self.test = self.rankings[self.rankings["Season"] == currentyear]
         self.train = self.add_labels(self.train, label)
         self.test = self.process_test(self.test)
-    
+
+        #for key in self.dfs:
+        #    print('xxx ', key)
+            #if re.search('*MMassey*csv', key):
+            #    masseyfile = key
+
+
+
     def transform_rankings(self, data):
         print("Transforming historical rankings data...", end="")
-        ordinals = data['MMasseyOrdinals_thruSeason2024_day128.csv']
+        #ordinals = data[masseyfile[0]]
+        #ordinals = data['MMasseyOrdinals_thruSeason2024_day128.csv']
+        ordinals = data['MMasseyOrdinals.csv']
         seasons = np.unique(ordinals["Season"])
         systems = np.unique(ordinals["SystemName"])
         final_ordinals = pd.DataFrame()
@@ -44,7 +60,7 @@ class DataTransformer:
 
         print("done.")
         return data
-        
+
     def add_labels(self, data, label):
         print("Labeling historical data...", end="")
         results = self.dfs["MNCAATourneyCompactResults.csv"].drop(["DayNum", "WScore", "LScore", "WLoc", "NumOT"], axis = 1)
@@ -88,7 +104,7 @@ class DataTransformer:
         return X
         
     def process_test(self, data):
-        print("Generating possible tournament matchups for 2022...", end="")
+        print("Generating possible tournament matchups for ",self.currentyear,"...", end="")
         X = []
         for i in range(len(data)):
             for j in range(len(data)):
