@@ -11,14 +11,14 @@ def predict_probs_and_moneylines(data):
     predictions = pd.DataFrame(columns=["Team1", "Seed1", "Team2", "Seed2", "Win%1", "Win%2", "ML1", "ML2"])
     pred_array = []
     for i in range(len(data)):
-        game = data[["TeamName", "TeamName_team2", "Seed_team1", "Seed_team2", "pred", "proba"]].iloc[i]
+        game = data[["TeamName", "TeamName_team2", "Seed_team1", "Seed_team2", "pred", "Pred"]].iloc[i]
         mirror = data[(data["TeamName"] == game["TeamName_team2"]) & (data["TeamName_team2"] == game["TeamName"])]
         #if i == 0:
         #    print("XXX")
         #    print(type(game))
         #    print(type(mirror))
-        prob1 = float((game["proba"] + (1 - mirror["proba"].iloc[0])) / 2)
-        prob2 = float(((1-game["proba"]) + mirror["proba"].iloc[0]) / 2)
+        prob1 = float((game["Pred"] + (1 - mirror["Pred"].iloc[0])) / 2)
+        prob2 = float(((1-game["Pred"]) + mirror["Pred"].iloc[0]) / 2)
         pred_array.append([game["TeamName"], game["Seed_team1"], game["TeamName_team2"], game["Seed_team2"], prob1, prob2, int(break_even_moneyline(prob1)), int(break_even_moneyline(prob2))])
     
     return pd.DataFrame(pred_array, columns = predictions.columns)

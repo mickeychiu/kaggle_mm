@@ -1,5 +1,6 @@
 import pandas as pd
 import glob
+import os
 
 verbosity = 0
 
@@ -17,7 +18,9 @@ class DataLoader:
             csvs = glob.glob(path + "*.csv")
             for csv in csvs:
                 print("Reading " + csv + "...", end = "")
-                files[csv.split('/')[-1]] = pd.read_csv(csv,encoding='cp1252')
+                basename = os.path.basename(csv)
+                files[basename] = pd.read_csv(csv,encoding='cp1252')
+                #files[csv.split('/')[-1]] = pd.read_csv(csv,encoding='cp1252')
                 print(" done.")
         
         if verbosity:

@@ -12,18 +12,16 @@ class DataTransformer:
         print(self.currentyear)
         self.dfs = dataframes
         #print(self.dfs)
+
         self.rankings = self.transform_rankings(self.dfs)
-        #self.train = self.rankings[self.rankings["Season"] != 2022]
-        #self.test = self.rankings[self.rankings["Season"] == 2022]
+
+#        self.addfeatures = self.add_more_features(self.dfs)
+
         self.train = self.rankings[self.rankings["Season"] != currentyear]
         self.test = self.rankings[self.rankings["Season"] == currentyear]
+
         self.train = self.add_labels(self.train, label)
         self.test = self.process_test(self.test)
-
-        #for key in self.dfs:
-        #    print('xxx ', key)
-            #if re.search('*MMassey*csv', key):
-            #    masseyfile = key
 
 
 
@@ -60,6 +58,41 @@ class DataTransformer:
 
         print("done.")
         return data
+
+#    def add_more_features(self, data):
+#        print("Transforming historical features data...", end="")
+#        regseasondata = data['MRegularSeasonDetailedResults.csv']
+#
+#        seasons = np.unique(regseasondata["Season"])
+#        systems = np.unique(regseasondata["SystemName"])
+#        final_regseasondata = pd.DataFrame()
+#        all_finals = []
+#        for season in seasons:
+#            season_frame = regseasondata.loc[regseasondata["Season"] == season]
+#            for system in systems:
+#                season_system_frame = season_frame.loc[season_frame["SystemName"] == system]
+#                if not (season_system_frame.empty):
+#                    maximum_day = max(season_system_frame["RankingDayNum"])
+#                    season_system_finals = season_system_frame.loc[season_system_frame["RankingDayNum"] == maximum_day]
+#                    all_finals.append(season_system_finals)
+#        final_regseasondata = pd.concat(all_finals, axis = 0)
+#        system_dfs = []
+#        for system in systems:
+#            system_dfs.append(final_regseasondata.loc[final_regseasondata["SystemName"] == system].drop(["SystemName", "RankingDayNum"], axis=1).rename(columns={"OrdinalRank": system}))
+#        joint_regseasondata = system_dfs[0]
+#        for df in system_dfs[1:]:
+#            joint_regseasondata = joint_regseasondata.merge(df, how="outer", on=["Season", "TeamID"])
+#        seeds = data["MNCAATourneySeeds.csv"]
+#        confs = data["MTeamConferences.csv"]
+#        with_seeds = joint_regseasondata.merge(seeds, how="inner", on=["Season", "TeamID"])
+#        with_conf = with_seeds.merge(confs, on=["Season", "TeamID"])
+#        data = with_conf
+#        data["Seed"] = data["Seed"].map(lambda x: int(x) if len(x) == 2 else (int(x[1:3]) if len(x) == 4 else int(x[1:])))
+#
+#        print("done.")
+#        return data
+
+
 
     def add_labels(self, data, label):
         print("Labeling historical data...", end="")
@@ -104,6 +137,8 @@ class DataTransformer:
         return X
         
     def process_test(self, data):
+        ''' 
+        '''
         print("Generating possible tournament matchups for ",self.currentyear,"...", end="")
         X = []
         for i in range(len(data)):
