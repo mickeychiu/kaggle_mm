@@ -26,7 +26,7 @@ test = transformer.get_test()
 
 #breakpoint()
 
-print('Making predictions...')
+print("Making men's tournament predictions...")
 
 #predictor = TabularPredictor(label="label", eval_metric="log_loss").fit(train.drop(["TeamID_team1", "TeamID_team2"],axis=1))
 predictor = TabularPredictor(label="label", eval_metric=ag_brier_score).fit(train.drop(["TeamID_team1", "TeamID_team2"],axis=1))
@@ -45,7 +45,7 @@ test["ID"] = "2025_" + test["TeamID_team1"].astype(str) + "_" + test["TeamID_tea
 test4submit = test[['ID', 'Pred']].copy().set_index('ID')
 
 submission = files['SampleSubmissionStage2.csv'].set_index('ID')
-submission.update(test4update)
+submission.update(test4submit)
 submission.to_csv("submission.csv")
 
 names = files["MTeams.csv"]
@@ -64,3 +64,28 @@ pred_df.to_csv("predictions/predictions.csv")
 #pretty_print_matchups(pred_df, first_four, include_moneyline=False)
 #round_1_matchups = get_round1(files) # excludes round1 which need results of pigtail games
 #pretty_print_matchups(pred_df, round_1_matchups, include_moneyline=False)
+
+
+print("Making women's tournament predictions...")
+
+
+wtransformer = DataTransformer(files, label="label", currentyear=CurrentYear, type='women')
+wtrain = wtransformer.get_train()
+wtest = wtransformer.get_test()
+wpredictor = TabularPredictor(label="label", eval_metric=ag_brier_score).fit(wtrain.drop(["T1_TeamID", "T2_TeamID"],axis=1))
+#wpredictor = TabularPredictor.load("/Users/chiu/Documents/AIML/kaggle_mm/AutogluonModels/ag-20250316_002757")
+print(wpredictor.leaderboard())
+
+w_y_pred = wpredictor.predict(wtest.drop(["T1_TeamID", "T2_TeamID"],axis=1))
+wprobs = wpredictor.predict_proba(wtest.drop(["T1_TeamID", "T2_TeamID"],axis=1))
+
+wtest["pred"] = w_y_pred
+wtest["Pred"] = wprobs[1]
+wtest["ID"] = "2025_" + wtest["T1_TeamID"].astype(str) + "_" + wtest["T2_TeamID"].astype(str)
+
+wtest.to_csv("wtest.csv")
+
+wtest4submit = wtest[['ID', 'Pred']].copy().set_index('ID')
+wtest4submit.to_csv('wtest4submit.csv')
+submission.update(wtest4submit)
+submission.to_csv("submission.csv")
