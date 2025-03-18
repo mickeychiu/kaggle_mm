@@ -18,10 +18,13 @@ class DataTransformer:
         if type == 'men':
             self.rankings = self.transform_rankings(self.dfs)
 
-#           self.addfeatures = self.add_more_features(self.dfs)
-
-            self.train = self.rankings[self.rankings["Season"] != currentyear]
+            self.train = self.rankings
+            #self.train = self.rankings[self.rankings["Season"] != currentyear]
             self.test = self.rankings[self.rankings["Season"] == currentyear]
+
+            tourneyseedsfile = 'WNCAATourneySeeds.csv'
+            print(f'Making all combos from {tourneyseedsfile} for year {self.currentyear}')
+            combos2predict = self.get_tourneycombos(self.dfs[tourneyseedsfile])
 
             self.train = self.add_labels(self.train, label)
             self.test = self.process_test(self.test)
@@ -32,8 +35,8 @@ class DataTransformer:
 
             self.train = self.get_train_seasonstats(self.dfs['WRegularSeasonDetailedResults.csv'])
 
-            tourneyseedsfile = str(self.currentyear) + '_tourney_seeds.csv'
-            print(f'Making all combos from {tourneyseedsfile}')
+            tourneyseedsfile = 'WNCAATourneySeeds.csv'
+            print(f'Making all combos from {tourneyseedsfile} for year {self.currentyear}')
             combos2predict = self.get_tourneycombos(self.dfs[tourneyseedsfile])
             combos2predict.to_csv("combos2predict.csv")
 
@@ -76,7 +79,7 @@ class DataTransformer:
         return data
 
     def get_statistics(self, df):
-        '''Get statistics for each team foe each season
+        '''Get average statistics for each team for each season
         '''
 
         df['WDiff'] = df['WScore'] - df['LScore']
@@ -242,24 +245,21 @@ class DataTransformer:
         return X
     
     def get_tourneycombos(self,df):
-        '''get all tournament combos, consisting of all uniqure pairs from all teams in data
+        '''get all tournament combos, consisting of all unique pairs from all teams in data
         '''
 
+        team_ids = df.loc[df['Season'] == self.currentyear]['TeamID'].unique()  # Get unique TeamIDs
+
         team_combinations = []
-        for tournament, group in df.groupby("Tournament"):
-            team_ids = group["TeamID"].unique()  # Get unique TeamIDs
-            pairs = list(combinations(team_ids, 2))  # Generate all unique pairs
+
+        pairs = list(combinations(team_ids, 2))  # Generate all unique pairs
         
-            # Store results with tournament info
-            for team1, team2 in pairs:
-                team_combinations.append({"Tournament": tournament, "T1_TeamID": team1, "T2_TeamID": team2})
+        # Store results with tournament info
+        for team1, team2 in pairs:
+            team_combinations.append({"T1_TeamID": team1, "T2_TeamID": team2})
         
         # Convert to DataFrame
         df_combinations = pd.DataFrame(team_combinations)
-        if type == 'men':
-            df_combinations = df_combinations.loc[df_combinations['Tournament'] == 'M'].drop(['Tournament'],axis=1)
-        else:
-            df_combinations = df_combinations.loc[df_combinations['Tournament'] == 'W'].drop(['Tournament'],axis=1)
         df_sorted = df_combinations.sort_values(by=['T1_TeamID', 'T2_TeamID']).reset_index(drop=True)
         return df_sorted
 

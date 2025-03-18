@@ -10,7 +10,7 @@ from src.custom_metrics import *
 #file_path = ["march-machine-learning-mania-2024/","MDataFiles_Stage2/"]
 data_path = "./data/2025/"
 file_path = ["march-machine-learning-mania-2025/"]
-CurrentYear=2024
+CurrentYear=2025
 
 print('Loading Files')
 data_loader = DataLoader(data_path, file_path)
