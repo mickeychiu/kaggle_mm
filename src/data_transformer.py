@@ -7,7 +7,10 @@ from itertools import combinations
 verbosity = 0
 
 class DataTransformer:
-    def __init__(self, dataframes, label, currentyear=2025, type='men'):
+    def __init__(self, dataframes, label, currentyear=2025, type='men', model='stats'):
+        ''' type = men or women
+            model = rank, stats, rankstats
+        '''
         print('DataTransformer')
         self.currentyear = currentyear
         self.type = type
@@ -16,21 +19,41 @@ class DataTransformer:
         #print(self.dfs)
 
         if type == 'men':
-            self.rankings = self.transform_rankings(self.dfs)
+            if model == 'rank':
+                self.rankings = self.transform_rankings(self.dfs)
 
-            self.train = self.rankings
-            #self.train = self.rankings[self.rankings["Season"] != currentyear]
-            self.test = self.rankings[self.rankings["Season"] == currentyear]
+                self.train = self.rankings
+                #self.train = self.rankings[self.rankings["Season"] != currentyear]
+                self.test = self.rankings[self.rankings["Season"] == currentyear]
 
-            tourneyseedsfile = 'WNCAATourneySeeds.csv'
-            print(f'Making all combos from {tourneyseedsfile} for year {self.currentyear}')
-            combos2predict = self.get_tourneycombos(self.dfs[tourneyseedsfile])
+                tourneyseedsfile = 'MNCAATourneySeeds.csv'
+                print(f'Making all combos from {tourneyseedsfile} for year {self.currentyear}')
+                combos2predict = self.get_tourneycombos(self.dfs[tourneyseedsfile])
 
-            self.train = self.add_labels(self.train, label)
-            self.test = self.process_test(self.test)
+                self.train = self.add_labels(self.train, label)
+                self.test = self.process_test(self.test)
+
+            elif model == 'stats':
+
+                all_results_dfs = [ self.dfs['MRegularSeasonDetailedResults.csv'], self.dfs['MNCAATourneyDetailedResults.csv'] ]
+                all_results_df = pd.concat(all_results_dfs).reset_index()
+                self.season_stats = self.get_statistics( all_results_df )
+                self.season_stats.to_csv('mseasonstats.csv')
+
+                self.train = self.get_train_seasonstats(self.dfs['MRegularSeasonDetailedResults.csv'])
+
+                tourneyseedsfile = 'MNCAATourneySeeds.csv'
+                print(f'Making all combos from {tourneyseedsfile} for year {self.currentyear}')
+                combos2predict = self.get_tourneycombos(self.dfs[tourneyseedsfile])
+                combos2predict.to_csv("mcombos2predict.csv")
+
+                self.test = self.get_predict_seasonstats(combos2predict)
+
         else:
-            #should add self.dfs['WNCAATourneyDetailedResults.csv'] here
-            self.season_stats = self.get_statistics(self.dfs['WRegularSeasonDetailedResults.csv'])
+
+            all_results_dfs = [ self.dfs['WRegularSeasonDetailedResults.csv'], self.dfs['WNCAATourneyDetailedResults.csv'] ]
+            all_results_df = pd.concat(all_results_dfs).reset_index()
+            self.season_stats = self.get_statistics( all_results_df )
             self.season_stats.to_csv('wseasonstats.csv')
 
             self.train = self.get_train_seasonstats(self.dfs['WRegularSeasonDetailedResults.csv'])
@@ -38,7 +61,7 @@ class DataTransformer:
             tourneyseedsfile = 'WNCAATourneySeeds.csv'
             print(f'Making all combos from {tourneyseedsfile} for year {self.currentyear}')
             combos2predict = self.get_tourneycombos(self.dfs[tourneyseedsfile])
-            combos2predict.to_csv("combos2predict.csv")
+            combos2predict.to_csv("wcombos2predict.csv")
 
             self.test = self.get_predict_seasonstats(combos2predict)
 
@@ -109,7 +132,7 @@ class DataTransformer:
         season_statistics.columns = [''.join(col).strip() for col in season_statistics.columns.values]
 
         #print(season_statistics)
-    
+
         return season_statistics
 
 
@@ -190,8 +213,8 @@ class DataTransformer:
 
         print("done.")
         return X
-        
-    
+
+
     def get_predict_seasonstats(self, df):
         ''' Get the data needed for the prediction
         '''
@@ -208,8 +231,8 @@ class DataTransformer:
         print(type(self.season_stats))
         print(self.season_stats)
         #season_stats = self.season_stats.query('Season' == self.currentyear).copy()
-        season_stats = self.season_stats.loc[self.season_stats.index.get_level_values("Season") == 2024]
-        
+        season_stats = self.season_stats.loc[self.season_stats.index.get_level_values("Season") == self.currentyear]
+
         season_stats.columns = ['T1_' + x for x in list(season_stats.columns)]
 
         dfpred = pd.merge(dfpred, season_stats, on = ['TeamID'], how = 'left')
@@ -241,9 +264,9 @@ class DataTransformer:
         X = X.fillna(350)
 
         print("done.")
-        
+
         return X
-    
+
     def get_tourneycombos(self,df):
         '''get all tournament combos, consisting of all unique pairs from all teams in data
         '''
@@ -253,11 +276,12 @@ class DataTransformer:
         team_combinations = []
 
         pairs = list(combinations(team_ids, 2))  # Generate all unique pairs
-        
+
         # Store results with tournament info
         for team1, team2 in pairs:
+            team1, team2 = sorted([team1, team2])  # Sort to enforce Team1 < Team2
             team_combinations.append({"T1_TeamID": team1, "T2_TeamID": team2})
-        
+
         # Convert to DataFrame
         df_combinations = pd.DataFrame(team_combinations)
         df_sorted = df_combinations.sort_values(by=['T1_TeamID', 'T2_TeamID']).reset_index(drop=True)
